@@ -22,7 +22,6 @@ export default function App() {
     dispatch(fetchSettings());
   }, [dispatch]);
 
-
   useEffect(() => {
     const handleAuthLogout = () => {
       dispatch(logout());

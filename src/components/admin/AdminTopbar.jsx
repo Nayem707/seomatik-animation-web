@@ -13,6 +13,8 @@ import Dropdown, { DropdownItem } from "@/components/common/Dropdown";
 import Avatar from "@/components/common/Avatar";
 import { toggleAdminSidebar } from "@/features/ui";
 import { logout, selectCurrentUser } from "@/features/auth";
+import { api } from "@/services/api";
+import { signOutFirebase } from "@/lib/firebase";
 
 export default function AdminTopbar() {
   const dispatch = useDispatch();
@@ -24,9 +26,7 @@ export default function AdminTopbar() {
 
     try {
       if (refreshToken) {
-        await import("@/services/api").then(({ api }) =>
-          api.logout(refreshToken),
-        );
+        await api.logout(refreshToken);
       }
     } catch (error) {
       console.warn(
@@ -34,9 +34,7 @@ export default function AdminTopbar() {
         error,
       );
     } finally {
-      await import("@/lib/firebase").then(({ signOutFirebase }) =>
-        signOutFirebase(),
-      );
+      await signOutFirebase();
       dispatch(logout());
       toast.success("Signed out");
       navigate("/");

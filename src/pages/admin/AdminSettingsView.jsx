@@ -5,6 +5,9 @@ import Input from "@/components/common/Input";
 import Select from "@/components/common/Select";
 import Button from "@/components/common/Button";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
+import BrandLogoFields, {
+  isValidLogoUrl,
+} from "@/components/admin/BrandLogoFields";
 import {
   fetchSettings,
   saveShippingSettings,
@@ -24,6 +27,7 @@ export default function AdminSettingsView() {
 
   const [store, setStore] = useState({
     storeName: "Shoply",
+    logoUrl: "",
     supportEmail: "support@shoply.com",
     phone: "+1 (800) 555-0199",
     currency: "USD",
@@ -34,6 +38,7 @@ export default function AdminSettingsView() {
     deliveryInsideDhaka: 70,
     deliveryOutsideDhaka: 150,
   });
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     dispatch(fetchSettings());
@@ -43,6 +48,7 @@ export default function AdminSettingsView() {
     if (!settings) return;
     setStore({
       storeName: settings.storeName || "",
+      logoUrl: settings.logoUrl || "",
       supportEmail: settings.supportEmail || "",
       phone: settings.phone || "",
       currency: settings.currency || "USD",
@@ -53,6 +59,7 @@ export default function AdminSettingsView() {
       deliveryInsideDhaka: settings.deliveryInsideDhaka ?? 70,
       deliveryOutsideDhaka: settings.deliveryOutsideDhaka ?? 150,
     });
+    setErrors({});
   }, [settings]);
 
   const setStoreField = (key) => (e) =>
@@ -66,10 +73,21 @@ export default function AdminSettingsView() {
 
   const saveStore = async (e) => {
     e.preventDefault();
+    const storeName = store.storeName.trim();
+    const logoUrl = store.logoUrl.trim();
+    const nextErrors = {};
+    if (!storeName) nextErrors.storeName = "Enter a brand name";
+    if (!isValidLogoUrl(logoUrl)) {
+      nextErrors.logoUrl = "Enter a full image URL or upload a logo";
+    }
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length) return;
+
     try {
       await dispatch(
         saveStoreSettings({
-          storeName: store.storeName.trim(),
+          storeName,
+          logoUrl,
           supportEmail: store.supportEmail.trim(),
           phone: store.phone.trim(),
           currency: store.currency,
@@ -110,15 +128,29 @@ export default function AdminSettingsView() {
       />
 
       <form onSubmit={saveStore} className="card p-6">
-        <h2 className="font-semibold text-slate-900">Store Details</h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <Input
-            label="Store name"
-            value={store.storeName}
-            onChange={setStoreField("storeName")}
+        <h2 className="font-semibold text-slate-900">Brand & logo</h2>
+        <p className="mt-1 text-sm text-slate-500">
+          Controls the logo and name in the storefront header, footer, and admin
+          sidebar.
+        </p>
+        <div className="mt-4">
+          <BrandLogoFields
+            storeName={store.storeName}
+            logoUrl={store.logoUrl}
+            onStoreNameChange={(value) =>
+              setStore((prev) => ({ ...prev, storeName: value }))
+            }
+            onLogoUrlChange={(value) =>
+              setStore((prev) => ({ ...prev, logoUrl: value }))
+            }
+            storeNameError={errors.storeName}
+            logoUrlError={errors.logoUrl}
             disabled={loading || saving}
-            required
           />
+        </div>
+
+        <h2 className="mt-8 font-semibold text-slate-900">Store details</h2>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <Input
             label="Support email"
             type="email"

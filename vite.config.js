@@ -2,9 +2,9 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
-import { createRequire } from "module";
+import { fileURLToPath } from "url";
 
-const require = createRequire(import.meta.url);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
@@ -27,12 +27,14 @@ export default defineConfig({
     },
   },
   build: {
+    chunkSizeWarningLimit: 700,
     rollupOptions: {
       output: {
         manualChunks: {
           "react-vendor": ["react", "react-dom", "react-router-dom"],
           "redux-vendor": ["@reduxjs/toolkit", "react-redux"],
           charts: ["recharts"],
+          firebase: ["firebase/app", "firebase/auth"],
         },
       },
     },

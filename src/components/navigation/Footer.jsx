@@ -7,6 +7,7 @@ import {
   EnvelopeIcon,
   MapPinIcon,
   PhoneIcon,
+  ShoppingBagIcon,
   ShoppingCartIcon,
   TruckIcon,
 } from "@heroicons/react/24/solid";
@@ -84,6 +85,7 @@ function FooterHeading({ children }) {
 function FooterLogo({ storeName, logoUrl }) {
   const [failedUrl, setFailedUrl] = useState("");
   const src = resolveMediaUrl(logoUrl);
+  const showImage = Boolean(src && failedUrl !== src);
   const dotIndex = storeName.indexOf(".");
   const [main, suffix] =
     dotIndex > 0
@@ -94,9 +96,9 @@ function FooterLogo({ storeName, logoUrl }) {
     <Link
       to="/"
       aria-label={storeName}
-      className="border-primary-300 inline-flex items-center rounded-lg border-2 bg-white px-4 py-2 text-xl font-extrabold tracking-tight"
+      className="border-primary-300 inline-flex items-center gap-2 rounded-lg border-2 bg-white px-3 py-2 text-xl font-extrabold tracking-tight"
     >
-      {src && failedUrl !== src ? (
+      {showImage ? (
         <img
           src={src}
           alt={storeName}
@@ -105,8 +107,13 @@ function FooterLogo({ storeName, logoUrl }) {
         />
       ) : (
         <>
-          <span className="text-primary-950">{main}</span>
-          {suffix && <span className="text-primary-600">{suffix}</span>}
+          <span className="bg-primary-600 flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-white">
+            <ShoppingBagIcon className="h-4 w-4" />
+          </span>
+          <span className="min-w-0">
+            <span className="text-primary-950">{main}</span>
+            {suffix && <span className="text-primary-600">{suffix}</span>}
+          </span>
         </>
       )}
     </Link>
@@ -117,7 +124,7 @@ const clean = (value) => (typeof value === "string" ? value.trim() : "");
 
 export default function Footer() {
   const settings = useSelector(selectSettings) || {};
-  const storeName = APP_NAME;
+  const storeName = clean(settings.storeName) || APP_NAME;
   const phone = clean(settings.phone);
   const whatsapp = clean(settings.whatsapp);
   const email = clean(settings.supportEmail);

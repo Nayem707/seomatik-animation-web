@@ -1080,7 +1080,7 @@ export default function HomePageManagementView() {
               <button
                 type="button"
                 onClick={() => openEditor(section.key)}
-                className="mt-4 inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                className="bg-primary-600 hover:bg-primary-700 mt-4 inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-white shadow-sm transition"
               >
                 <PencilSquareIcon className="h-4 w-4" />
                 Edit / Update
@@ -1092,7 +1092,7 @@ export default function HomePageManagementView() {
 
       <ManagementGroup
         title="Footer"
-        description="Logo, description, contact details and social links shown on every page."
+        description="Description, contact details and social links shown on every page. Brand logo is managed in Settings."
         icon={RectangleGroupIcon}
         count={1}
       >
@@ -1120,7 +1120,7 @@ export default function HomePageManagementView() {
           <button
             type="button"
             onClick={() => setFooterEditorOpen(true)}
-            className="mt-4 inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+            className="bg-primary-600 hover:bg-primary-700 mt-4 inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-white shadow-sm transition"
           >
             <PencilSquareIcon className="h-4 w-4" />
             Edit / Update

@@ -32,6 +32,7 @@ import { clearMyOrderState } from "@/features/orders";
 import { fetchCategories, selectCategories } from "@/features/categories";
 import { defaultSections, mapHomepageSectionData } from "@/features/homepage";
 import { api } from "@/services/api";
+import { signOutFirebase } from "@/lib/firebase";
 import { classNames, getCategoryLabel } from "@/utils";
 import toast from "react-hot-toast";
 
@@ -106,9 +107,7 @@ export default function Navbar() {
 
     try {
       if (refreshToken) {
-        await import("@/services/api").then(({ api }) =>
-          api.logout(refreshToken),
-        );
+        await api.logout(refreshToken);
       }
     } catch (error) {
       console.warn(
@@ -116,9 +115,7 @@ export default function Navbar() {
         error,
       );
     } finally {
-      await import("@/lib/firebase").then(({ signOutFirebase }) =>
-        signOutFirebase(),
-      );
+      await signOutFirebase();
       dispatch(logout());
       dispatch(resetCartState());
       dispatch(resetWishlistState());
