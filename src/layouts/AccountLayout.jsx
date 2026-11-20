@@ -18,6 +18,8 @@ import { logout, selectCurrentUser } from "@/features/auth";
 import { resetCartState } from "@/features/cart";
 import { resetWishlistState } from "@/features/wishlist";
 import { clearMyOrderState } from "@/features/orders";
+import { api } from "@/services/api";
+import { signOutFirebase } from "@/lib/firebase";
 import { classNames } from "@/utils";
 
 const navItems = [
@@ -81,9 +83,7 @@ export default function AccountLayout() {
 
                     try {
                       if (refreshToken) {
-                        await import("@/services/api").then(({ api }) =>
-                          api.logout(refreshToken),
-                        );
+                        await api.logout(refreshToken);
                       }
                     } catch (error) {
                       console.warn(
@@ -91,9 +91,7 @@ export default function AccountLayout() {
                         error,
                       );
                     } finally {
-                      await import("@/lib/firebase").then(({ signOutFirebase }) =>
-                        signOutFirebase(),
-                      );
+                      await signOutFirebase();
                       dispatch(logout());
                       dispatch(resetCartState());
                       dispatch(resetWishlistState());

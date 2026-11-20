@@ -27,12 +27,14 @@ export default defineConfig({
     },
   },
   build: {
+    chunkSizeWarningLimit: 700,
     rollupOptions: {
       output: {
         manualChunks: {
           "react-vendor": ["react", "react-dom", "react-router-dom"],
           "redux-vendor": ["@reduxjs/toolkit", "react-redux"],
           charts: ["recharts"],
+          firebase: ["firebase/app", "firebase/auth"],
         },
       },
     },

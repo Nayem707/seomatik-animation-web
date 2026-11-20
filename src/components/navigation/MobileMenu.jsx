@@ -6,6 +6,8 @@ import Button from "@/components/common/Button";
 import { toggleMobileMenu } from "@/features/ui";
 import { logout, selectAuth } from "@/features/auth";
 import { selectCategories } from "@/features/categories";
+import { api } from "@/services/api";
+import { signOutFirebase } from "@/lib/firebase";
 import { getCategoryLabel } from "@/utils";
 import toast from "react-hot-toast";
 
@@ -111,9 +113,7 @@ export default function MobileMenu({ open }) {
                   const refreshToken = localStorage.getItem("refresh_token");
                   try {
                     if (refreshToken) {
-                      await import("@/services/api").then(({ api }) =>
-                        api.logout(refreshToken),
-                      );
+                      await api.logout(refreshToken);
                     }
                   } catch (error) {
                     console.warn(
@@ -121,9 +121,7 @@ export default function MobileMenu({ open }) {
                       error,
                     );
                   } finally {
-                    await import("@/lib/firebase").then(({ signOutFirebase }) =>
-                      signOutFirebase(),
-                    );
+                    await signOutFirebase();
                     dispatch(logout());
                     toast.success("Signed out");
                     go("/");
