@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
-import { ArrowUpTrayIcon } from "@heroicons/react/24/outline";
 import Input from "@/components/common/Input";
 import Button from "@/components/common/Button";
 import Modal from "@/components/common/Modal";
@@ -10,9 +9,7 @@ import {
   selectSettings,
   selectSettingsSaving,
 } from "@/features/settings";
-import { api } from "@/services/api";
 import { SOCIAL_LINK_KEYS } from "@/constants";
-import { resolveMediaUrl } from "@/utils";
 
 const SOCIAL_LINK_LABELS = {
   facebook: "Facebook page URL",
@@ -21,14 +18,6 @@ const SOCIAL_LINK_LABELS = {
   youtube: "YouTube channel URL",
   messenger: "Messenger URL (m.me/…)",
 };
-const LOGO_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/gif",
-  "image/avif",
-];
-const LOGO_MAX_SIZE_MB = 5;
 const isHttpUrl = (value) => /^https?:\/\//i.test(value);
 
 const toFooterForm = (settings) => ({
@@ -36,7 +25,6 @@ const toFooterForm = (settings) => ({
   whatsapp: settings?.whatsapp || "",
   supportEmail: settings?.supportEmail || "",
   address: settings?.address || "",
-  logoUrl: settings?.logoUrl || "",
   footerDescription: settings?.footerDescription || "",
   supportHours: settings?.supportHours || "",
   copyrightName: settings?.copyrightName || "",
@@ -51,20 +39,15 @@ export default function FooterSettingsModal({ open, onClose }) {
   const saving = useSelector(selectSettingsSaving);
   const [footer, setFooter] = useState(() => toFooterForm(settings));
   const [errors, setErrors] = useState({});
-  const [logoUploading, setLogoUploading] = useState(false);
-  const [logoPreviewFailed, setLogoPreviewFailed] = useState(false);
-  const logoInputRef = useRef(null);
 
   useEffect(() => {
     if (!open) return;
     setFooter(toFooterForm(settings));
     setErrors({});
-    setLogoPreviewFailed(false);
     // Reset only when the editor opens so in-progress edits are kept.
   }, [open]);
 
-  const busy = saving || logoUploading;
-  const storeName = settings?.storeName || "";
+  const brandName = (settings?.storeName || "").trim();
 
   const setField = (key) => (e) =>
     setFooter((prev) => ({ ...prev, [key]: e.target.value }));
@@ -74,41 +57,8 @@ export default function FooterSettingsModal({ open, onClose }) {
       socialLinks: { ...prev.socialLinks, [key]: e.target.value },
     }));
 
-  const handleLogoFile = async (e) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-    if (!LOGO_TYPES.includes(file.type)) {
-      toast.error("Please select a JPG, PNG, WebP, GIF, or AVIF image");
-      return;
-    }
-    if (file.size > LOGO_MAX_SIZE_MB * 1024 * 1024) {
-      toast.error(`Image must be under ${LOGO_MAX_SIZE_MB}MB`);
-      return;
-    }
-
-    setLogoUploading(true);
-    try {
-      const uploaded = await api.uploadImages(file);
-      const first = Array.isArray(uploaded) ? uploaded[0] : uploaded;
-      if (!first?.url) throw new Error("Upload did not return an image URL");
-      setFooter((prev) => ({ ...prev, logoUrl: first.url }));
-      setLogoPreviewFailed(false);
-      toast.success("Logo uploaded — save to apply it");
-    } catch (error) {
-      toast.error(
-        error?.response?.data?.error?.message ||
-          error?.message ||
-          "Failed to upload logo",
-      );
-    } finally {
-      setLogoUploading(false);
-    }
-  };
-
   const save = async () => {
     const supportEmail = footer.supportEmail.trim();
-    const logoUrl = footer.logoUrl.trim();
     const socialLinks = Object.fromEntries(
       SOCIAL_LINK_KEYS.map((key) => [key, footer.socialLinks[key].trim()]),
     );
@@ -116,9 +66,6 @@ export default function FooterSettingsModal({ open, onClose }) {
     const nextErrors = {};
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(supportEmail)) {
       nextErrors.supportEmail = "Enter a valid email address";
-    }
-    if (logoUrl && !isHttpUrl(logoUrl) && !logoUrl.startsWith("/")) {
-      nextErrors.logoUrl = "Enter a full image URL or upload a logo";
     }
     SOCIAL_LINK_KEYS.forEach((key) => {
       if (socialLinks[key] && !isHttpUrl(socialLinks[key])) {
@@ -135,7 +82,6 @@ export default function FooterSettingsModal({ open, onClose }) {
           whatsapp: footer.whatsapp.trim(),
           supportEmail,
           address: footer.address.trim(),
-          logoUrl,
           footerDescription: footer.footerDescription.trim(),
           supportHours: footer.supportHours.trim(),
           copyrightName: footer.copyrightName.trim(),
@@ -152,15 +98,15 @@ export default function FooterSettingsModal({ open, onClose }) {
   return (
     <Modal
       open={open}
-      onClose={busy ? undefined : onClose}
+      onClose={saving ? undefined : onClose}
       title="Footer Content"
       size="lg"
       footer={
         <>
-          <Button variant="outline" onClick={onClose} disabled={busy}>
+          <Button variant="outline" onClick={onClose} disabled={saving}>
             Cancel
           </Button>
-          <Button onClick={save} loading={saving} disabled={logoUploading}>
+          <Button onClick={save} loading={saving}>
             Save / Update
           </Button>
         </>
@@ -169,74 +115,13 @@ export default function FooterSettingsModal({ open, onClose }) {
       <div className="space-y-6">
         <p className="text-xs text-slate-500">
           Empty fields are hidden from the storefront footer. Phone and WhatsApp
-          are also used on product pages.
+          are also used on product pages. Brand name and logo are managed in
+          Settings.
         </p>
 
         <div>
-          <h4 className="text-sm font-semibold text-slate-900">Brand</h4>
+          <h4 className="text-sm font-semibold text-slate-900">Content</h4>
           <div className="mt-3 space-y-4">
-            <div className="space-y-2">
-              <Input
-                label="Logo URL"
-                value={footer.logoUrl}
-                onChange={(e) => {
-                  setField("logoUrl")(e);
-                  setLogoPreviewFailed(false);
-                }}
-                placeholder={`https://… (leave empty to show "${storeName || "store name"}")`}
-                error={errors.logoUrl}
-                disabled={saving}
-              />
-              <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  leftIcon={ArrowUpTrayIcon}
-                  loading={logoUploading}
-                  disabled={saving}
-                  onClick={() => logoInputRef.current?.click()}
-                >
-                  {logoUploading ? "Uploading…" : "Upload logo"}
-                </Button>
-                {footer.logoUrl && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    disabled={busy}
-                    onClick={() => {
-                      setFooter((prev) => ({ ...prev, logoUrl: "" }));
-                      setLogoPreviewFailed(false);
-                    }}
-                  >
-                    Remove logo
-                  </Button>
-                )}
-                {footer.logoUrl.trim() && !logoPreviewFailed && (
-                  <span className="inline-flex items-center rounded-lg border border-slate-200 bg-white px-2 py-1">
-                    <img
-                      src={resolveMediaUrl(footer.logoUrl.trim())}
-                      alt="Logo preview"
-                      className="h-6 w-auto max-w-30 object-contain"
-                      onError={() => setLogoPreviewFailed(true)}
-                    />
-                  </span>
-                )}
-              </div>
-              {logoPreviewFailed && (
-                <p className="text-xs text-amber-600">
-                  Logo preview unavailable. Check the URL.
-                </p>
-              )}
-              <input
-                ref={logoInputRef}
-                type="file"
-                accept={LOGO_TYPES.join(",")}
-                className="hidden"
-                onChange={handleLogoFile}
-              />
-            </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium text-slate-700">
                 Footer description
@@ -254,10 +139,10 @@ export default function FooterSettingsModal({ open, onClose }) {
               label="Copyright name"
               value={footer.copyrightName}
               onChange={setField("copyrightName")}
-              placeholder={storeName || "Store name"}
+              placeholder={brandName || "Brand name"}
               maxLength={200}
               hint={`Shown as: Copyright © ${new Date().getFullYear()} ${
-                footer.copyrightName.trim() || storeName || "…"
+                footer.copyrightName.trim() || brandName || "…"
               }. All rights reserved.`}
               disabled={saving}
             />

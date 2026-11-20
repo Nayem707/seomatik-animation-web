@@ -1092,7 +1092,7 @@ export default function HomePageManagementView() {
 
       <ManagementGroup
         title="Footer"
-        description="Logo, description, contact details and social links shown on every page."
+        description="Description, contact details and social links shown on every page. Brand logo is managed in Settings."
         icon={RectangleGroupIcon}
         count={1}
       >
